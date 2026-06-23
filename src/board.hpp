@@ -11,7 +11,11 @@ public:
         initialize_board();
     }
 
-    std::optional<Piece> get_piece(int x, int y) {
+    void apply(const Move& move);
+    bool is_legal(const Move& move);
+    std::optional<PieceColor> winner();
+
+    std::optional<Piece> get_piece(int x, int y) const {
         if (x < 0 || x > 7 || y < 0 || y > 7) {
             throw std::out_of_range("Board coordinates are out of bounds.");
         }

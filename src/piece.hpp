@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdexcept>
+
 enum class PieceColor {
     White,
     Black
@@ -19,6 +21,11 @@ struct Position {
     int y;
 };
 
+struct Move {
+    Position from;
+    Position to;
+};
+
 class Piece {
 public:
     Piece(PieceColor color, PieceType type, Position pos) {
@@ -33,6 +40,19 @@ public:
 
     PieceType get_type() const {
         return m_type;
+    }
+
+    Position get_position() const {
+        return m_position;
+    }
+
+    void set_position(int x, int y) {
+        if (x < 0 || x > 7 || y < 0 || y > 7) {
+            throw std::out_of_range("Out of bounds");
+        }
+
+        m_position.x = x;
+        m_position.y = y;
     }
 
 private:

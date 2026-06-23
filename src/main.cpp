@@ -8,25 +8,33 @@
 void draw_piece(const Piece& piece);
 void draw_board(Board& board);
 void switch_player(PieceColor& color);
-Position handle_player_input(PieceColor player);
 std::string to_string(PieceColor color);
+Move get_move(PieceColor current_player);
 
 int main() {
     Board* board = new Board();
 
-    bool running = true;
-    PieceColor player_turn = PieceColor::White;
+    PieceColor current_player = PieceColor::White;
 
     std::cout << "\033[?25l"; 
     std::cout << "\033[2J";
 
-    while (running) {
-        std::cout << "\033[H"; 
+    while (!board->winner().has_value()) {
+        std::cout << "\033[2J\033[H";
         draw_board(*board);
 
-        Position move = handle_player_input(player_turn);
+        Move move = get_move(current_player);
 
-        switch_player(player_turn);
+        if (board->is_legal(move)) {
+            board->apply(move);
+        }
+        else {
+            std::cout << "Not a valid move. Press enter to try again.";
+            std::cin.ignore();
+            continue;
+        }
+
+        switch_player(current_player);
     }
 
     std::cout << "\033[?25h";
@@ -81,7 +89,7 @@ void switch_player(PieceColor& color) {
     color = color == PieceColor::White ? PieceColor::Black : PieceColor::White;
 }
 
-Position parse_move(std::string move) {
+Position parse_position(std::string move) {
     if (move.length() != 2) {
         throw std::invalid_argument("Move must have exactly two characters.");
     }
@@ -92,13 +100,32 @@ Position parse_move(std::string move) {
     return { x, y };
 }
 
-Position handle_player_input(PieceColor player) {
-    std::string move;
-    std::cout << to_string(player) << "s turn: ";
-    std::cin >> move;
-    return parse_move(move);
-}
-
 std::string to_string(PieceColor color) {
     return color == PieceColor::White ? "White" : "Black";
+}
+
+Move get_move(PieceColor current_player) {
+    bool valid_move = false;
+    Position from;
+    Position to;
+    while (!valid_move) {
+        try {
+            std::string from_input;
+            std::cout << "Select piece: "<< "(" << to_string(current_player) << "): ";
+            std::cin >> from_input;
+            from = parse_position(from_input);
+
+            std::string to_input;
+            std::cout << "Move to: (" << to_string(current_player) << "): ";
+            std::cin >> to_input;
+            to = parse_position(to_input);
+
+            valid_move = true;
+        }
+        catch (std::invalid_argument) {
+            std::cout << "Move out of bounds. Press enter to try again.";
+            std::cin.ignore();
+        }
+    }   
+    return Move { from, to };
 }
